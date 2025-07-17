@@ -1,7 +1,6 @@
 ---
 import "../styles/global.css";
-// Server-side code (frontmatter)
-const initialCode = `fetch("https://proxy.corsfix.com/?<TARGET_URL>");`;
+import CodeEditor from "../components/CodeEditor";
 ---
 
 <html lang="en">
@@ -52,41 +51,7 @@ const initialCode = `fetch("https://proxy.corsfix.com/?<TARGET_URL>");`;
             Corsfix CORS Proxy.
           </p>
 
-          <div class="flex flex-col gap-4">
-            <!-- Code Editor on top -->
-            <div class="w-full">
-              <div
-                class="h-72 w-full overflow-hidden border shadow-md bg-white"
-              >
-                <div id="code-editor" class="h-full w-full text-sm"></div>
-              </div>
-            </div>
-
-            <!-- Buttons and Output side by side -->
-            <div class="flex flex-col md:flex-row gap-4 w-full items-start">
-              <!-- Buttons -->
-              <div class="flex flex-row md:flex-col gap-4 w-full md:w-32">
-                <button
-                  id="run-button"
-                  class="h-12 border bg-white px-2 shadow-md cursor-pointer transition-colors hover:bg-gray-100 w-full"
-                  >Run</button
-                >
-                <button
-                  id="reset-button"
-                  class="h-12 border bg-white px-2 shadow-md cursor-pointer transition-colors hover:bg-gray-100 w-full"
-                  >Reset</button
-                >
-              </div>
-
-              <!-- Output Area -->
-              <div
-                id="output"
-                class="h-48 border bg-white p-4 text-sm font-mono shadow-md w-full"
-              >
-                <span class="text-gray-400">Output will appear here...</span>
-              </div>
-            </div>
-          </div>
+          <CodeEditor client:load />
         </main>
 
         <!-- Footer -->
@@ -103,113 +68,5 @@ const initialCode = `fetch("https://proxy.corsfix.com/?<TARGET_URL>");`;
         </footer>
       </div>
     </div>
-
-    <!-- CodeMirror and JavaScript functionality -->
-    <script type="module">
-      import { EditorState } from "https://esm.sh/@codemirror/state@6.2.1";
-      import { EditorView, basicSetup } from "https://esm.sh/codemirror@6.0.1";
-      import { javascript } from "https://esm.sh/@codemirror/lang-javascript@6.2.1";
-
-      const initialCode = `fetch("https://proxy.corsfix.com/?<TARGET_URL>");`;
-      let currentCode = initialCode;
-      let editorView = null;
-
-      // Initialize CodeMirror
-      function initializeEditor() {
-        const editorElement = document.getElementById("code-editor");
-
-        const startState = EditorState.create({
-          doc: initialCode,
-          extensions: [
-            basicSetup,
-            javascript(),
-            EditorView.updateListener.of((update) => {
-              if (update.docChanged) {
-                currentCode = update.state.doc.toString();
-              }
-            }),
-          ],
-        });
-
-        editorView = new EditorView({
-          state: startState,
-          parent: editorElement,
-        });
-      }
-
-      // Handle run button click
-      function handleRunCode() {
-        const outputElement = document.getElementById("output");
-        outputElement.innerHTML = ""; // Clear previous output
-
-        const originalLog = console.log;
-        const originalError = console.error;
-        const tempOutput = [];
-
-        // Redirect console.log and console.error
-        console.log = (...args) => {
-          tempOutput.push(args.map(String).join(" "));
-        };
-        console.error = (...args) => {
-          tempOutput.push(`ERROR: ${args.map(String).join(" ")}`);
-        };
-
-        try {
-          // Execute the code in a new Function context
-          new Function(currentCode)();
-        } catch (e) {
-          tempOutput.push(`RUNTIME ERROR: ${e.message}`);
-        } finally {
-          // Restore original console methods
-          console.log = originalLog;
-          console.error = originalError;
-
-          // Display output
-          if (tempOutput.length === 0) {
-            outputElement.innerHTML =
-              '<span class="output-placeholder">Output will appear here...</span>';
-          } else {
-            outputElement.innerHTML = tempOutput
-              .map((line) => {
-                const isError =
-                  line.startsWith("ERROR:") ||
-                  line.startsWith("RUNTIME ERROR:");
-                return `<p class="${isError ? "text-red-600" : ""}">${line}</p>`;
-              })
-              .join("");
-          }
-        }
-      }
-
-      // Handle reset button click
-      function handleResetCode() {
-        currentCode = initialCode;
-        const outputElement = document.getElementById("output");
-        outputElement.innerHTML =
-          '<span class="output-placeholder">Output will appear here...</span>';
-
-        if (editorView) {
-          editorView.dispatch({
-            changes: {
-              from: 0,
-              to: editorView.state.doc.length,
-              insert: initialCode,
-            },
-          });
-        }
-      }
-
-      // Initialize when DOM is loaded
-      document.addEventListener("DOMContentLoaded", () => {
-        initializeEditor();
-
-        document
-          .getElementById("run-button")
-          .addEventListener("click", handleRunCode);
-        document
-          .getElementById("reset-button")
-          .addEventListener("click", handleResetCode);
-      });
-    </script>
   </body>
 </html>

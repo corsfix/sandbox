@@ -2,17 +2,20 @@ import { useState, useRef } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 
-const initialCode = `// json typicode
-fetch('https://jsonplaceholder.typicode.com/todos/1')
-  .then(response => response.json())
-  .then(json => console.log(JSON.stringify(json)))
-  .catch(error => console.error(error))
-
-// corsfix
-fetch('https://proxy.corsfix.com/?https://app.corsfix.com/api/animals')
-  .then(response => response.json())
-  .then(json => console.log(JSON.stringify(json)))
-  .catch(error => console.error(error))`;
+const initialCode = `(async () => {
+  try {
+    console.log('Fetching Sample API\\n========================')
+    const url = 'https://app.corsfix.com/api/animals';
+    // with proxy
+    const resp = await fetch("https://proxy.corsfix.com/?" + url)
+    // without proxy
+    // const resp = await fetch(url)
+    const json = await resp.json()
+    console.log(JSON.stringify(json, null, 2))
+  } catch (error) {
+    console.error(error)
+  }
+})()`;
 
 export default function CodeEditor() {
   const [code, setCode] = useState(initialCode);
@@ -123,7 +126,9 @@ export default function CodeEditor() {
           id="output"
           className="h-48 border bg-white p-4 text-sm font-mono shadow-md w-full overflow-auto"
         >
-          <pre className="whitespace-pre-wrap text-gray-800 text-sm">{output}</pre>
+          <pre className="whitespace-pre-wrap text-gray-800 text-sm">
+            {output}
+          </pre>
         </div>
       </div>
     </div>

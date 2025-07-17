@@ -1,16 +1,215 @@
 ---
-
+import "../styles/global.css";
+// Server-side code (frontmatter)
+const initialCode = `fetch("https://proxy.corsfix.com/?<TARGET_URL>");`;
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JavaScript Sandbox | Corsfix</title>
+    <!-- Tailwind CSS classes are used instead of custom styles -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+
+  <body>
+    <div
+      class="relative min-h-screen bg-gradient-to-b from-indigo-50/30 to-indigo-100/50"
+    >
+      <!-- Faint dotted background -->
+      <div
+        class="absolute inset-0 z-0 opacity-50"
+        style="background-image:radial-gradient(circle at 1px 1px,rgba(0,0,0,0.2) 1px,transparent 1px);background-size:20px 20px;"
+      >
+      </div>
+
+      <div class="relative flex flex-col p-4 max-w-3xl mx-auto">
+        <!-- Header -->
+        <header class="flex items-center justify-between pb-8 pt-4">
+          <div class="flex items-center gap-2">
+            <img
+              src="/logo.png"
+              alt="Corsfix Logo"
+              class="h-8 w-8 border rounded-full"
+            />
+            <div class="font-semibold text-xl m-0">Corsfix</div>
+          </div>
+          <a href="https://corsfix.com" class="hover:underline"
+            >&larr; Back to main site</a
+          >
+        </header>
+
+        <!-- Main Content -->
+        <main class="mx-auto w-full max-w-3xl">
+          <h1 class="mb-2 text-center text-4xl font-semibold mt-0">
+            JavaScript Sandbox
+          </h1>
+          <p class="mt-4 mb-8 text-center text-lg">
+            Run JavaScript code and send CORS error free network request using
+            Corsfix CORS Proxy.
+          </p>
+
+          <div class="flex flex-col gap-4">
+            <!-- Code Editor on top -->
+            <div class="w-full">
+              <div
+                class="h-72 w-full overflow-hidden border shadow-md bg-white"
+              >
+                <div id="code-editor" class="h-full w-full text-sm"></div>
+              </div>
+            </div>
+
+            <!-- Buttons and Output side by side -->
+            <div class="flex flex-col md:flex-row gap-4 w-full items-start">
+              <!-- Buttons -->
+              <div class="flex flex-row md:flex-col gap-4 w-full md:w-32">
+                <button
+                  id="run-button"
+                  class="h-12 border bg-white px-2 shadow-md cursor-pointer transition-colors hover:bg-gray-100 w-full"
+                  >Run</button
+                >
+                <button
+                  id="reset-button"
+                  class="h-12 border bg-white px-2 shadow-md cursor-pointer transition-colors hover:bg-gray-100 w-full"
+                  >Reset</button
+                >
+              </div>
+
+              <!-- Output Area -->
+              <div
+                id="output"
+                class="h-48 border bg-white p-4 text-sm font-mono shadow-md w-full"
+              >
+                <span class="text-gray-400">Output will appear here...</span>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-8 text-center">
+          <p class="text-sm my-1">
+            Javascript Sandbox powered by <a
+              href="http://codemirror.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline text-blue-600 hover:text-blue-800">CodeMirror</a
+            >
+          </p>
+          <p class="text-sm my-1">Corsfix &copy; 2025</p>
+        </footer>
+      </div>
+    </div>
+
+    <!-- CodeMirror and JavaScript functionality -->
+    <script type="module">
+      import { EditorState } from "https://esm.sh/@codemirror/state@6.2.1";
+      import { EditorView, basicSetup } from "https://esm.sh/codemirror@6.0.1";
+      import { javascript } from "https://esm.sh/@codemirror/lang-javascript@6.2.1";
+
+      const initialCode = `fetch("https://proxy.corsfix.com/?<TARGET_URL>");`;
+      let currentCode = initialCode;
+      let editorView = null;
+
+      // Initialize CodeMirror
+      function initializeEditor() {
+        const editorElement = document.getElementById("code-editor");
+
+        const startState = EditorState.create({
+          doc: initialCode,
+          extensions: [
+            basicSetup,
+            javascript(),
+            EditorView.updateListener.of((update) => {
+              if (update.docChanged) {
+                currentCode = update.state.doc.toString();
+              }
+            }),
+          ],
+        });
+
+        editorView = new EditorView({
+          state: startState,
+          parent: editorElement,
+        });
+      }
+
+      // Handle run button click
+      function handleRunCode() {
+        const outputElement = document.getElementById("output");
+        outputElement.innerHTML = ""; // Clear previous output
+
+        const originalLog = console.log;
+        const originalError = console.error;
+        const tempOutput = [];
+
+        // Redirect console.log and console.error
+        console.log = (...args) => {
+          tempOutput.push(args.map(String).join(" "));
+        };
+        console.error = (...args) => {
+          tempOutput.push(`ERROR: ${args.map(String).join(" ")}`);
+        };
+
+        try {
+          // Execute the code in a new Function context
+          new Function(currentCode)();
+        } catch (e) {
+          tempOutput.push(`RUNTIME ERROR: ${e.message}`);
+        } finally {
+          // Restore original console methods
+          console.log = originalLog;
+          console.error = originalError;
+
+          // Display output
+          if (tempOutput.length === 0) {
+            outputElement.innerHTML =
+              '<span class="output-placeholder">Output will appear here...</span>';
+          } else {
+            outputElement.innerHTML = tempOutput
+              .map((line) => {
+                const isError =
+                  line.startsWith("ERROR:") ||
+                  line.startsWith("RUNTIME ERROR:");
+                return `<p class="${isError ? "text-red-600" : ""}">${line}</p>`;
+              })
+              .join("");
+          }
+        }
+      }
+
+      // Handle reset button click
+      function handleResetCode() {
+        currentCode = initialCode;
+        const outputElement = document.getElementById("output");
+        outputElement.innerHTML =
+          '<span class="output-placeholder">Output will appear here...</span>';
+
+        if (editorView) {
+          editorView.dispatch({
+            changes: {
+              from: 0,
+              to: editorView.state.doc.length,
+              insert: initialCode,
+            },
+          });
+        }
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        initializeEditor();
+
+        document
+          .getElementById("run-button")
+          .addEventListener("click", handleRunCode);
+        document
+          .getElementById("reset-button")
+          .addEventListener("click", handleResetCode);
+      });
+    </script>
+  </body>
 </html>

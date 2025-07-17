@@ -1,62 +1,87 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
-import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
-import { keymap } from "@codemirror/view";
 
-const initialCode = `fetch("https://proxy.corsfix.com/?<TARGET_URL>");`;
+const initialCode = `// json typicode
+fetch('https://jsonplaceholder.typicode.com/todos/1')
+  .then(response => response.json())
+  .then(json => console.log(JSON.stringify(json)))
+  .catch(error => console.error(error))
+
+// corsfix
+fetch('https://proxy.corsfix.com/?https://app.corsfix.com/api/animals')
+  .then(response => response.json())
+  .then(json => console.log(JSON.stringify(json)))
+  .catch(error => console.error(error))`;
 
 export default function CodeEditor() {
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState("Output will appear here...");
-  const [isRunning, setIsRunning] = useState(false);
-  // Function to execute JavaScript code
-  const runCode = async () => {
-    setIsRunning(true);
-    setOutput("Running...");
+  const workerRef = useRef(null);
+  const blobUrlRef = useRef(null);
 
-    try {
-      // Create a custom console object to capture output
-      const logs = [];
-      const customConsole = {
-        log: (...args) => logs.push(args.join(" ")),
-        error: (...args) => logs.push("Error: " + args.join(" ")),
-        warn: (...args) => logs.push("Warning: " + args.join(" ")),
-        info: (...args) => logs.push("Info: " + args.join(" ")),
+  const createWorker = (code) => {
+    const blob = new Blob(
+      [
+        `
+      var console = {
+        log:  function() { postMessage({ type: 'log',   msg: Array.prototype.join.call(arguments, ' ') }); },
+        warn: function() { postMessage({ type: 'warn',  msg: Array.prototype.join.call(arguments, ' ') }); },
+        error:function() { postMessage({ type: 'error', msg: Array.prototype.join.call(arguments, ' ') }); },
+        info: function() { postMessage({ type: 'info',  msg: Array.prototype.join.call(arguments, ' ') }); }
       };
-
-      // Create an async function to properly handle async code
-      const executeCode = new Function(
-        "console", 
-        "fetch",
-        `
-        return (async () => {
-          ${code}
-        })();
-        `
-      );
-
-      // Execute the code with custom console and real fetch
-      const result = await executeCode(customConsole, fetch);
-
-      // Combine console output with return value
-      let output = logs.join("\n");
-      if (result !== undefined) {
-        output += output ? "\n" + result : result;
+      
+      try {
+        ${code}
+      } catch (err) {
+        postMessage({ type: 'error', msg: err.message || err.toString() });
       }
+    `,
+      ],
+      { type: "application/javascript" }
+    );
 
-      setOutput(output || "Code executed successfully (no output)");
-    } catch (error) {
-      setOutput(`Error: ${error.message}`);
-    } finally {
-      setIsRunning(false);
+    const newBlobUrl = URL.createObjectURL(blob);
+    const newWorker = new Worker(newBlobUrl);
+
+    // Hook up message handlers
+    newWorker.onmessage = function (evt) {
+      const { type, msg } = evt.data;
+      if (type === "log") setOutput((o) => o + msg + "\n");
+      if (type === "warn") setOutput((o) => o + "Warning: " + msg + "\n");
+      if (type === "error") setOutput((o) => o + "Error: " + msg + "\n");
+      if (type === "info") setOutput((o) => o + "Info: " + msg + "\n");
+    };
+
+    newWorker.onerror = (e) => {
+      setOutput((o) => o + "Worker error: " + e.message + "\n");
+    };
+
+    workerRef.current = newWorker;
+    blobUrlRef.current = newBlobUrl;
+    return newWorker;
+  };
+
+  const resetWorker = () => {
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
     }
   };
 
-  // Function to reset the editor
+  const runCode = () => {
+    setOutput("");
+    resetWorker();
+    createWorker(code);
+  };
+
   const resetCode = () => {
-    setCode(initialCode);
     setOutput("Output will appear here...");
+    resetWorker();
   };
 
   return (
@@ -69,19 +94,9 @@ export default function CodeEditor() {
           width="100%"
           className="h-full w-full"
           theme="light"
-          extensions={[
-            javascript({ jsx: true }),
-            autocompletion({
-              activateOnTyping: true,
-              override: [],
-            }),
-            keymap.of(completionKeymap),
-          ]}
-          basicSetup={{ 
+          extensions={[javascript()]}
+          basicSetup={{
             lineNumbers: true,
-            searchKeymap: true,
-            autocompletion: true,
-            completionKeymap: true,
           }}
         />
       </div>
@@ -91,10 +106,9 @@ export default function CodeEditor() {
           <button
             id="run-button"
             onClick={runCode}
-            disabled={isRunning}
             className="h-12 border bg-white px-2 shadow-md cursor-pointer transition-colors hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed w-full"
           >
-            {isRunning ? "Running..." : "Run"}
+            Run
           </button>
           <button
             id="reset-button"
@@ -109,7 +123,7 @@ export default function CodeEditor() {
           id="output"
           className="h-48 border bg-white p-4 text-sm font-mono shadow-md w-full overflow-auto"
         >
-          <pre className="whitespace-pre-wrap text-gray-800">{output}</pre>
+          <pre className="whitespace-pre-wrap text-gray-800 text-sm">{output}</pre>
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ import CodeEditor from "../components/CodeEditor";
 
   <body>
     <div
-      class="relative min-h-screen bg-gradient-to-b from-indigo-50/30 to-indigo-100/50"
+      class="relative min-h-screen bg-gradient-to-b from-indigo-50/10 to-indigo-100/50"
     >
       <!-- Faint dotted background -->
       <div
@@ -32,12 +32,12 @@ import CodeEditor from "../components/CodeEditor";
             <img
               src="/logo.png"
               alt="Corsfix Logo"
-              class="h-8 w-8 border rounded-full"
+              class="h-8 w-8 border border-gray-400 rounded-full"
             />
             <div class="font-semibold text-xl m-0">Corsfix</div>
           </div>
           <a href="https://corsfix.com" class="hover:underline"
-            >&larr; Back to main site</a
+            >&larr; Back to corsfix.com</a
           >
         </header>
 
@@ -47,8 +47,8 @@ import CodeEditor from "../components/CodeEditor";
             JavaScript Sandbox
           </h1>
           <p class="mt-4 mb-8 text-center text-lg">
-            Run JavaScript code and send CORS error free network request using
-            Corsfix CORS Proxy.
+            Run JavaScript code and send CORS-free network request using Corsfix
+            CORS Proxy.
           </p>
 
           <CodeEditor client:load />
@@ -57,7 +57,7 @@ import CodeEditor from "../components/CodeEditor";
         <!-- Footer -->
         <footer class="mt-8 text-center">
           <p class="text-sm my-1">
-            Javascript Sandbox powered by <a
+            Code is running locally in the browser via Web Worker API. Editor by <a
               href="http://codemirror.net/"
               target="_blank"
               rel="noopener noreferrer"

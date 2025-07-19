@@ -117,7 +117,7 @@ export default function CodeEditor() {
           <button
             id="reset-button"
             onClick={resetCode}
-            className="border border-gray-600 bg-gray-700 p-2 rounded-md shadow-md cursor-pointer transition-colors hover:bg-gray-600 w-full"
+            className="border border-gray-500 bg-transparent text-gray-300 p-2 rounded-md shadow-md cursor-pointer transition-colors hover:bg-gray-700 w-full"
           >
             Reset
           </button>

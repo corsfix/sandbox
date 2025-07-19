@@ -19,9 +19,25 @@ const initialCode = `(async () => {
 
 export default function CodeEditor() {
   const [code, setCode] = useState(initialCode);
-  const [output, setOutput] = useState("Output will appear here...");
+  const [output, setOutput] = useState([
+    { type: "info", msg: "Output will appear here..." },
+  ]);
   const workerRef = useRef(null);
   const blobUrlRef = useRef(null);
+
+  const getLogLevelStyle = (type) => {
+    switch (type) {
+      case "error":
+        return "text-red-400";
+      case "warn":
+        return "text-yellow-400";
+      case "info":
+        return "text-blue-400";
+      case "log":
+      default:
+        return "text-gray-300";
+    }
+  };
 
   const createWorker = (code) => {
     const blob = new Blob(
@@ -50,14 +66,14 @@ export default function CodeEditor() {
     // Hook up message handlers
     newWorker.onmessage = function (evt) {
       const { type, msg } = evt.data;
-      if (type === "log") setOutput((o) => o + msg + "\n");
-      if (type === "warn") setOutput((o) => o + "Warning: " + msg + "\n");
-      if (type === "error") setOutput((o) => o + "Error: " + msg + "\n");
-      if (type === "info") setOutput((o) => o + "Info: " + msg + "\n");
+      setOutput((prevOutput) => [...prevOutput, { type, msg }]);
     };
 
     newWorker.onerror = (e) => {
-      setOutput((o) => o + "Worker error: " + e.message + "\n");
+      setOutput((prevOutput) => [
+        ...prevOutput,
+        { type: "error", msg: `Worker error: ${e.message}` },
+      ]);
     };
 
     workerRef.current = newWorker;
@@ -77,14 +93,14 @@ export default function CodeEditor() {
   };
 
   const runCode = () => {
-    setOutput("");
+    setOutput([]);
     resetWorker();
     createWorker(code);
   };
 
   const resetCode = () => {
     setCode(initialCode);
-    setOutput("Output will appear here...");
+    setOutput([{ type: "info", msg: "Output will appear here..." }]);
     resetWorker();
   };
 
@@ -127,9 +143,13 @@ export default function CodeEditor() {
           id="output"
           className="h-48 border border-gray-600 bg-gray-800 p-4 text-sm font-mono rounded-lg shadow-md w-full overflow-auto"
         >
-          <pre className="whitespace-pre-wrap text-gray-200 text-xs">
-            {output}
-          </pre>
+          <div className="whitespace-pre-wrap text-xs">
+            {output.map((entry, index) => (
+              <div key={index} className={getLogLevelStyle(entry.type)}>
+                {entry.msg}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

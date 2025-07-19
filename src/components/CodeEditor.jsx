@@ -83,20 +83,21 @@ export default function CodeEditor() {
   };
 
   const resetCode = () => {
+    setCode(initialCode);
     setOutput("Output will appear here...");
     resetWorker();
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="w-full h-72 overflow-scroll border shadow-md bg-white">
+    <div className="flex flex-col gap-3">
+      <div className="w-full h-72 overflow-scroll border border-gray-600 rounded-lg shadow-md bg-gray-800">
         <CodeMirror
           value={code}
           onChange={(value) => setCode(value)}
           height="100%"
           width="100%"
           className="h-full w-full"
-          theme="light"
+          theme="dark"
           extensions={[javascript()]}
           basicSetup={{
             lineNumbers: true,
@@ -104,19 +105,19 @@ export default function CodeEditor() {
         />
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 w-full items-start">
-        <div className="flex flex-row md:flex-col gap-4 w-full md:w-32">
+      <div className="flex flex-col md:flex-row gap-3 w-full items-start">
+        <div className="flex flex-row md:flex-col gap-3 w-full md:w-28">
           <button
             id="run-button"
             onClick={runCode}
-            className="h-12 border bg-white px-2 shadow-md cursor-pointer transition-colors hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+            className="border border-gray-600 bg-gray-700 p-2 rounded-md shadow-md cursor-pointer transition-colors hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed w-full"
           >
             Run
           </button>
           <button
             id="reset-button"
             onClick={resetCode}
-            className="h-12 border bg-white px-2 shadow-md cursor-pointer transition-colors hover:bg-gray-100 w-full"
+            className="border border-gray-600 bg-gray-700 p-2 rounded-md shadow-md cursor-pointer transition-colors hover:bg-gray-600 w-full"
           >
             Reset
           </button>
@@ -124,9 +125,9 @@ export default function CodeEditor() {
 
         <div
           id="output"
-          className="h-48 border bg-white p-4 text-sm font-mono shadow-md w-full overflow-auto"
+          className="h-48 border border-gray-600 bg-gray-800 p-4 text-sm font-mono rounded-lg shadow-md w-full overflow-auto"
         >
-          <pre className="whitespace-pre-wrap text-gray-800 text-sm">
+          <pre className="whitespace-pre-wrap text-gray-200 text-xs">
             {output}
           </pre>
         </div>

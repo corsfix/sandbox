@@ -14,16 +14,11 @@ import CodeEditor from "../components/CodeEditor";
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
 
-  <body>
+  <body class="bg-gray-900 text-gray-100">
     <div
-      class="relative min-h-screen bg-gradient-to-b from-[#595be7]/5 to-[#595be7]/15"
+      class="relative min-h-screen bg-gradient-to-b from-gray-900 to-gray-800"
     >
       <!-- Faint dotted background -->
-      <div
-        class="absolute inset-0 z-0 opacity-50"
-        style="background-image:radial-gradient(circle at 1px 1px,rgba(0,0,0,0.2) 1px,transparent 1px);background-size:20px 20px;"
-      >
-      </div>
 
       <div class="relative flex flex-col p-4 max-w-3xl mx-auto">
         <!-- Header -->
@@ -32,11 +27,13 @@ import CodeEditor from "../components/CodeEditor";
             <img
               src="/logo.png"
               alt="Corsfix Logo"
-              class="h-8 w-8 border border-gray-400 rounded-full"
+              class="h-8 w-8 border border-gray-600 rounded-full"
             />
             <div class="font-semibold text-xl m-0">Corsfix</div>
           </div>
-          <a href="https://corsfix.com" class="hover:underline"
+          <a
+            href="https://corsfix.com"
+            class="hover:underline text-gray-300 hover"
             >&larr; Back to corsfix.com</a
           >
         </header>
@@ -46,7 +43,7 @@ import CodeEditor from "../components/CodeEditor";
           <h1 class="mb-2 text-center text-4xl font-semibold mt-0">
             JavaScript Sandbox
           </h1>
-          <p class="mt-4 mb-8 text-center text-lg">
+          <p class="mt-4 mb-8 text-center text-lg text-gray-300">
             Run JavaScript code and send CORS-free network request using Corsfix
             CORS Proxy.
           </p>
@@ -56,20 +53,22 @@ import CodeEditor from "../components/CodeEditor";
 
         <!-- Footer -->
         <footer class="mt-8 text-center">
-          <p class="text-sm my-1">
+          <p class="text-sm my-1 text-gray-400">
             All of the code is executed client-side in the browser. Editor by <a
               href="http://codemirror.net/"
               target="_blank"
               rel="noopener noreferrer"
-              class="underline text-blue-600 hover:text-blue-800">CodeMirror</a
+              class="underline text-blue-400 hover:text-blue-300">CodeMirror</a
             >. Source Code on <a
               href="http://github.com/corsfix/sandbox"
               target="_blank"
               rel="noopener noreferrer"
-              class="underline text-blue-600 hover:text-blue-800">GitHub</a
+              class="underline text-blue-400 hover:text-blue-300">GitHub</a
             >.
           </p>
-          <p class="text-sm my-1">Corsfix &copy; {new Date().getFullYear()}</p>
+          <p class="text-sm my-1 text-gray-400">
+            Corsfix &copy; {new Date().getFullYear()}
+          </p>
         </footer>
       </div>
     </div>
